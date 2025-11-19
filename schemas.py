@@ -11,10 +11,11 @@ Model name is converted to lowercase for the collection name:
 - BlogPost -> "blogs" collection
 """
 
-from pydantic import BaseModel, Field
-from typing import Optional
+from pydantic import BaseModel, Field, ConfigDict
+from typing import Optional, Literal
+import datetime as dt
 
-# Example schemas (replace with your own):
+# Example schemas (you can keep these if needed):
 
 class User(BaseModel):
     """
@@ -38,11 +39,35 @@ class Product(BaseModel):
     category: str = Field(..., description="Product category")
     in_stock: bool = Field(True, description="Whether product is in stock")
 
-# Add your own schemas here:
-# --------------------------------------------------
+# Fitness Tracker Schemas
 
-# Note: The Flames database viewer will automatically:
-# 1. Read these schemas from GET /schema endpoint
-# 2. Use them for document validation when creating/editing
-# 3. Handle all database operations (CRUD) directly
-# 4. You don't need to create any database endpoints!
+class Workout(BaseModel):
+    """
+    Workouts performed by the user
+    Collection name: "workout"
+    """
+    model_config = ConfigDict(populate_by_name=True)
+
+    date: dt.date = Field(..., description="Date of the workout")
+    workout_type: Literal[
+        "Cardio",
+        "Strength",
+        "HIIT",
+        "Yoga",
+        "Pilates",
+        "Sports",
+        "Other",
+    ] = Field("Cardio", description="Workout category", alias="type")
+    duration_min: int = Field(..., ge=1, le=1440, description="Duration in minutes")
+    calories: Optional[int] = Field(None, ge=0, description="Estimated calories burned")
+    notes: Optional[str] = Field(None, description="Optional notes about the session")
+
+class Metric(BaseModel):
+    """
+    Body metrics tracked over time
+    Collection name: "metric"
+    """
+    date: dt.date = Field(..., description="Date of the measurement")
+    weight_kg: Optional[float] = Field(None, ge=0, description="Weight in kilograms")
+    body_fat_pct: Optional[float] = Field(None, ge=0, le=100, description="Body fat percentage")
+    resting_hr: Optional[int] = Field(None, ge=0, le=300, description="Resting heart rate (bpm)")
